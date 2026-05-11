@@ -1,9 +1,237 @@
 <!DOCTYPE html>
-<html>
-  <head>
+<html class="antialiased font-sans">
+<head>
     <meta charset="UTF-8">
-  </head>
-  <body>
-    <h2>This is a sample Widget built using Zoho Extension toolkit.</h2>
-  </body>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://live.zwidgets.com/js-sdk/1.2/ZohoEmbededAppSDK.min.js"></script>
+    <script>
+        tailwind.config = { 
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .update-flash { animation: flash 2s ease-out; }
+        @keyframes flash {
+            0% { background-color: rgba(34, 197, 94, 0.2); }
+            100% { background-color: transparent; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 p-4 transition-colors duration-300">
+
+    <div id="main-portal" class="max-w-5xl mx-auto space-y-4 pb-12">
+        
+        <!-- HEADER: COMPANY & PRIMARY STAKEHOLDER -->
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div class="p-3 bg-slate-900 flex justify-between items-center">
+                <h1 class="text-[9px] font-black tracking-[0.3em] text-slate-400 uppercase">Compliance Management Portal</h1>
+                <span id="user-greeting" class="text-[9px] font-bold text-white/50 uppercase"></span>
+            </div>
+            
+            <div class="p-6">
+                <div class="flex flex-col md:flex-row md:items-start justify-between gap-6">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Company Name</label>
+                        <p id="comp-name" class="text-2xl font-extrabold text-slate-900 dark:text-white">---</p>
+                    </div>
+                    <div class="text-left md:text-right">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Designations</label>
+                        <div id="sh-designations" class="flex flex-wrap md:justify-end gap-1.5"></div>
+                    </div>
+                </div>
+
+                <!-- PRIMARY STAKEHOLDER DETAILED INFO -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8 pt-6 border-t border-slate-100 dark:border-slate-700">
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase">Primary Stakeholder</label>
+                            <p id="sh-name" class="text-base font-bold text-slate-700 dark:text-slate-300">---</p>
+                            <p id="sh-email" class="text-xs font-medium text-slate-400">---</p>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase">Idenfo Ref ID</label>
+                            <p id="sh-idenfo-id" class="text-xs font-mono font-bold text-slate-600 dark:text-slate-400">---</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">External Links</label>
+                            <a id="link-idenfo" href="#" target="_blank" class="flex items-center text-xs font-bold text-blue-600 hover:underline">
+                                <svg class="w-3 h-3 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                                Open Idenfo Profile
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase block">Compliance Documents</label>
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-700">
+                                <span class="text-[10px] font-bold flex-1 truncate">Passport_Attachment.pdf</span>
+                                <button class="text-blue-600 text-[10px] font-black uppercase ml-2">View</button>
+                            </div>
+                            <div class="flex items-center p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-700">
+                                <span class="text-[10px] font-bold flex-1 truncate">AML_Scan_Report.pdf</span>
+                                <button class="text-blue-600 text-[10px] font-black uppercase ml-2">View</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AML SCORING SUMMARY INFO -->
+        <div id="scoring-summary-box" class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 transition-all duration-500">
+            <h3 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest mb-6 flex items-center">
+                <span class="w-2 h-2 bg-slate-900 dark:bg-white rounded-full mr-2"></span>
+                AML Scoring Summary Info
+            </h3>
+            <div class="grid grid-cols-2 lg:grid-cols-6 gap-4">
+                <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+                    <label class="text-[8px] font-bold text-slate-400 uppercase block mb-1">CR Factor</label>
+                    <p id="score-cr" class="text-sm font-black text-slate-700 dark:text-slate-200">---</p>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+                    <label class="text-[8px] font-bold text-slate-400 uppercase block mb-1">BR Score</label>
+                    <p id="score-br" class="text-sm font-black text-slate-700 dark:text-slate-200">---</p>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+                    <label class="text-[8px] font-bold text-slate-400 uppercase block mb-1">GR Score</label>
+                    <p id="score-gr" class="text-sm font-black text-slate-700 dark:text-slate-200">---</p>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+                    <label class="text-[8px] font-bold text-slate-400 uppercase block mb-1">Stakeholder Total</label>
+                    <p id="score-st-total" class="text-sm font-black text-slate-700 dark:text-slate-200">---</p>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+                    <label class="text-[8px] font-bold text-slate-400 uppercase block mb-1">Stakeholder Risk</label>
+                    <p id="score-st-rating" class="text-xs font-black text-slate-700 dark:text-slate-200">---</p>
+                </div>
+                <div id="final-risk-card" class="bg-slate-900 p-4 rounded-xl shadow-lg transition-colors duration-500">
+                    <label class="text-[8px] font-bold opacity-60 text-white uppercase block mb-1">Final Company Risk</label>
+                    <p id="score-final-rating" class="text-xs font-black text-white italic uppercase tracking-tighter">---</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW SECTION: AML COMPLIANCE OFFICER INFO -->
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+            <h3 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest mb-6 flex items-center">
+                <span class="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
+                AML Compliance Officer Info
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+                    <label class="text-[9px] font-bold text-slate-400 uppercase block mb-1">Officer Decision</label>
+                    <p id="officer-decision" class="text-sm font-black text-slate-700 dark:text-slate-200">---</p>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+                    <label class="text-[9px] font-bold text-slate-400 uppercase block mb-1">Officer Remark</label>
+                    <p id="officer-remark" class="text-sm font-medium text-slate-700 dark:text-slate-200">---</p>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+                    <label class="text-[9px] font-bold text-slate-400 uppercase block mb-1">Final Stakeholder Risk</label>
+                    <p id="officer-st-rating" class="text-sm font-black text-slate-700 dark:text-slate-200">---</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- OTHER SHAREHOLDERS TABLE -->
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Other Shareholders</h3>
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left text-[11px] border-separate border-spacing-y-2">
+                    <thead>
+                        <tr class="text-slate-400 font-bold uppercase tracking-tighter">
+                            <th class="pb-2 pl-2">Name</th>
+                            <th class="pb-2">Idenfo ID</th>
+                            <th class="pb-2">Designation</th>
+                            <th class="pb-2">Risk Rating</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sh-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-xl">
+            <button id="initiate-btn" onclick="startComplianceWorkflow()" class="w-full bg-slate-900 dark:bg-white dark:text-slate-900 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl active:scale-[0.98] transition-all">
+                Run Compliance Finalization
+            </button>
+        </div>
+    </div>
+
+    <!-- WORKFLOW OVERLAY -->
+    <div id="loader-overlay" class="fixed inset-0 bg-white/98 dark:bg-slate-900/98 z-[999] hidden flex-col items-center justify-center p-6 backdrop-blur-xl overflow-y-auto">
+        <div class="w-full max-w-sm my-10">
+            <div id="status-header" class="flex items-center justify-center mb-8">
+                <div id="main-spinner" class="w-10 h-10 border-[3px] border-slate-100 dark:border-slate-800 border-t-slate-900 dark:border-t-white rounded-full animate-spin"></div>
+            </div>
+            
+            <div id="log-container" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 space-y-6 shadow-sm">
+                <div id="step-1" class="space-y-3">
+                    <div class="flex items-center text-slate-400 text-sm font-bold">
+                        <div class="step-icon w-6 h-6 mr-4 flex items-center justify-center rounded-full border border-slate-200 text-[10px]">1</div>
+                        <div class="step-text">Idenfo Status Check</div>
+                    </div>
+                    <div id="idenfo-override" class="hidden ml-10 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl animate-in fade-in zoom-in duration-300">
+                        <p class="text-[11px] text-amber-800 dark:text-amber-400 font-medium mb-3">⚠️ Client is <b>High Risk</b> in Idenfo.</p>
+                        <div class="flex gap-2">
+                            <button onclick="location.reload()" class="px-3 py-1.5 bg-white border border-slate-200 text-[10px] font-bold rounded-md">Abort</button>
+                            <button onclick="confirmIdenfoOverride()" class="px-3 py-1.5 bg-amber-600 text-white text-[10px] font-bold rounded-md shadow-sm">Confirm & Proceed</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="step-upload" class="flex items-center text-slate-400 text-sm font-bold"><div class="step-icon w-6 h-6 mr-4 flex items-center justify-center rounded-full border border-slate-200 text-[10px]">2</div><div class="step-text">AML Scan Processing</div></div>
+                <div id="step-2" class="flex items-center text-slate-400 text-sm font-bold"><div class="step-icon w-6 h-6 mr-4 flex items-center justify-center rounded-full border border-slate-200 text-[10px]">3</div><div class="step-text">Risk Rating Calculation</div></div>
+                <div id="step-3" class="flex items-center text-slate-400 text-sm font-bold"><div class="step-icon w-6 h-6 mr-4 flex items-center justify-center rounded-full border border-slate-200 text-[10px]">4</div><div class="step-text">AML Officer Decision</div></div>
+            </div>
+
+            <!-- ENHANCED DECISION FORM -->
+            <div id="aml-decision-form" class="mt-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 space-y-4 hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 text-center">Manager Approval Form</h4>
+                
+                <div>
+                    <label class="text-[9px] font-bold text-slate-400 uppercase mb-1 block">Officer Decision</label>
+                    <select id="aml-decision-value" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg p-2.5 text-xs font-bold">
+                        <option value="">Select Action...</option>
+                        <option value="Accepted">Accepted</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Under Investigation">Under Investigation</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="text-[9px] font-bold text-slate-400 uppercase mb-1 block">Final Stakeholder Risk Rating</label>
+                    <select id="aml-officer-rating-value" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg p-2.5 text-xs font-bold">
+                        <option value="">Select Final Rating...</option>
+                        <option value="Low Risk">Low Risk</option>
+                        <option value="Medium Risk">Medium Risk</option>
+                        <option value="High Risk">High Risk</option>
+                        <option value="Critical High Risk">Critical High Risk</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="text-[9px] font-bold text-slate-400 uppercase mb-1 block">Officer Remarks</label>
+                    <textarea id="aml-remarks-value" rows="3" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg p-2.5 text-xs" placeholder="Describe findings..."></textarea>
+                </div>
+
+                <button onclick="submitFinalDecision()" class="w-full bg-slate-900 dark:bg-white dark:text-slate-900 text-white font-bold py-3 rounded-lg text-xs shadow-lg">Finalize Client Status</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app/js/app.js"></script>
+</body>
 </html>
