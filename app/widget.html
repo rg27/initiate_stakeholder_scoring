@@ -15,23 +15,49 @@
             }
         }
     </script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .fade-out { opacity: 0; pointer-events: none; transition: opacity 0.5s ease-out; }
-    </style>
+    <link rel="stylesheet" href="./css/style.css">
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 transition-colors duration-300">
 
-    <!-- Preloader -->
-    <div id="initial-preloader" class="fixed inset-0 bg-white dark:bg-slate-900 z-[1000] flex flex-col items-center justify-center transition-opacity duration-500">
-        <div class="flex flex-col items-center gap-4">
-            <div class="w-10 h-10 border-4 border-slate-100 border-t-slate-900 dark:border-slate-800 dark:border-t-white rounded-full animate-spin"></div>
-            <p id="loader-status-text" class="text-xs font-black tracking-widest text-slate-400 uppercase animate-pulse">Syncing Portal...</p>
+    <!-- Creative Preloader Screen -->
+    <div id="initial-preloader" class="fixed inset-0 bg-slate-950 z-[1000] flex flex-col items-center justify-center transition-opacity duration-500 overflow-hidden">
+        <!-- Technical Cyber Grid Background Decor -->
+        <div class="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-60"></div>
+        
+        <div class="relative flex flex-col items-center max-w-sm w-full px-6 text-center space-y-8">
+            <!-- Animated Geometric Scanner Node -->
+            <div class="relative w-20 h-20 flex items-center justify-center">
+                <div class="absolute inset-0 rounded-full border border-blue-500/20 animate-[ping_2s_infinite]"></div>
+                <div class="absolute inset-2 rounded-xl border border-indigo-500/30 rotate-45 animate-[spin_8s_linear_infinite]"></div>
+                <div class="absolute inset-4 rounded-full border-2 border-t-blue-500 border-r-transparent border-b-indigo-500 border-l-transparent animate-[spin_1.5s_linear_infinite]"></div>
+                <div class="w-4 h-4 bg-gradient-to-tr from-blue-500 to-indigo-500 rounded-md shadow-[0_0_15px_rgba(59,130,246,0.5)]"></div>
+            </div>
+
+            <!-- Content Tracking Titles -->
+            <div class="space-y-2">
+                <h2 class="text-[10px] font-black tracking-[0.5em] text-blue-400 uppercase leading-none">TLZ AML Compliance</h2>
+                <p id="loader-status-text" class="text-xs font-black tracking-widest text-white uppercase">Syncing Portal...</p>
+            </div>
+
+            <!-- Micro Tracking Progress Indicator Bar -->
+            <div class="w-full h-[3px] bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+                <div class="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500 w-full rounded-full animate-[pulse_1.5s_infinite] origin-left"></div>
+            </div>
+
+            <!-- Interactive Live Data Stream Log Matrix -->
+            <div class="w-full bg-slate-900/60 backdrop-blur-md border border-slate-800/80 rounded-xl p-4 min-h-[56px] flex items-center justify-center">
+                <div class="flex items-center gap-3 text-left w-full">
+                    <span class="flex h-2 w-2 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <p id="telemetry-ticker" class="text-[10px] font-mono tracking-wider text-slate-400 uppercase truncate">Establishing Secure CRM Handshake...</p>
+                </div>
+            </div>
         </div>
     </div>
 
+    <!-- Main Dynamic Application Window -->
     <div id="main-portal" class="max-w-[1400px] mx-auto p-4 pb-32 opacity-0 transition-opacity duration-500">
         
         <!-- Header Section -->
@@ -46,7 +72,6 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
             <!-- LEFT COLUMN -->
             <div class="lg:col-span-4 space-y-6">
                 <!-- Identity Card -->
@@ -98,26 +123,31 @@
                         <span class="w-1 h-3 bg-blue-600 rounded-full mr-2"></span>
                         Risk Assessment Scoring
                     </h3>
-                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                        <div class="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-700">
-                            <label class="text-[8px] font-black text-slate-400 uppercase block mb-1">CR Screening</label>
-                            <p id="score-cr" class="text-xl font-black text-slate-800 dark:text-white">0.0</p>
+                    
+                    <div class="grid grid-cols-6 gap-1.5 md:gap-2">
+                        <div class="p-3 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col justify-center">
+                            <label class="text-[7px] font-black text-slate-400 uppercase block mb-1 leading-tight">CR Screening</label>
+                            <p id="score-cr" class="text-lg font-black text-slate-800 dark:text-white">0.0</p>
                         </div>
-                        <div class="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-700">
-                            <label class="text-[8px] font-black text-slate-400 uppercase block mb-1">BR Score</label>
-                            <p id="score-br" class="text-xl font-black text-slate-800 dark:text-white">0.0</p>
+                        <div class="p-3 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col justify-center">
+                            <label class="text-[7px] font-black text-slate-400 uppercase block mb-1 leading-tight">BR Score</label>
+                            <p id="score-br" class="text-lg font-black text-slate-800 dark:text-white">0.0</p>
                         </div>
-                        <div class="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-700">
-                            <label class="text-[8px] font-black text-slate-400 uppercase block mb-1">GR Score</label>
-                            <p id="score-gr" class="text-xl font-black text-slate-800 dark:text-white">0.0</p>
+                        <div class="p-3 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col justify-center">
+                            <label class="text-[7px] font-black text-slate-400 uppercase block mb-1 leading-tight">GR Score</label>
+                            <p id="score-gr" class="text-lg font-black text-slate-800 dark:text-white">0.0</p>
                         </div>
-                        <div class="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-700">
-                            <label class="text-[8px] font-black text-slate-400 uppercase block mb-1">SH Total</label>
-                            <p id="score-st-total" class="text-xl font-black text-slate-800 dark:text-white">0.0</p>
+                        <div class="p-3 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col justify-center">
+                            <label class="text-[7px] font-black text-slate-400 uppercase block mb-1 leading-tight">SH Total</label>
+                            <p id="score-st-total" class="text-lg font-black text-slate-800 dark:text-white">0.0</p>
                         </div>
-                        <div id="final-risk-card" class="md:col-span-4 lg:col-span-1 bg-slate-900 p-4 rounded-2xl shadow-xl flex flex-col justify-center items-center text-center">
-                            <label class="text-[8px] font-black opacity-50 text-white uppercase block mb-1">Final Risk</label>
-                            <p id="score-final-rating" class="text-[11px] font-black text-white uppercase tracking-widest leading-none">---</p>
+                        <div class="p-3 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col justify-center">
+                            <label class="text-[7px] font-black text-slate-400 uppercase block mb-1 leading-tight">SH Rating</label>
+                            <p id="score-st-rating" class="text-base font-black text-slate-800 dark:text-white truncate">---</p>
+                        </div>
+                        <div id="final-risk-card" class="bg-slate-900 p-3 rounded-2xl shadow-xl flex flex-col justify-center items-center text-center md:col-span-4 lg:col-span-1">
+                            <label class="text-[7px] font-black opacity-50 text-white uppercase block mb-1 leading-tight">Final Company Risk Rating</label>
+                            <p id="score-final-rating" class="text-[13px] font-black text-white uppercase tracking-wider leading-none truncate w-full">---</p>
                         </div>
                     </div>
                 </div>
@@ -132,10 +162,13 @@
                         <table class="w-full text-left text-[11px] border-separate border-spacing-y-2">
                             <thead>
                                 <tr class="text-slate-400 font-black uppercase tracking-widest text-[8px]">
-                                    <th class="px-4 pb-2">Full Name</th>
+                                    <th class="px-4 pb-2">Client Name</th>
+                                    <th class="px-4 pb-2">Shareholder Type</th>
                                     <th class="px-4 pb-2 text-center">Idenfo ID</th>
                                     <th class="px-4 pb-2">Designation</th>
-                                    <th class="px-4 pb-2 text-right">Risk Status</th>
+                                    <th class="px-4 pb-2">CR Screening Score</th>
+                                    <th class="px-4 pb-2">BR Score</th>
+                                    <th class="px-4 pb-2">GR Score</th>
                                 </tr>
                             </thead>
                             <tbody id="sh-table-body"></tbody>
@@ -154,7 +187,7 @@
         </button>
     </div>
 
-    <!-- Processing Overlay -->
+    <!-- Processing Flow Overlay -->
     <div id="loader-overlay" class="fixed inset-0 bg-white/95 dark:bg-slate-900/95 z-[999] hidden flex-col items-center justify-center p-4 backdrop-blur-xl">
         <div class="w-full max-w-sm">
             <div id="status-header" class="mb-8 flex justify-center">
@@ -164,23 +197,47 @@
                 <div id="step-1" class="space-y-3">
                     <div class="flex items-center text-slate-400 text-[10px] font-black uppercase tracking-widest">
                         <div class="step-icon w-6 h-6 mr-3 flex items-center justify-center rounded-full border border-slate-200">1</div>
-                        <div class="step-text">Idenfo Check</div>
-                    </div>
-                    <div id="idenfo-override" class="hidden ml-9 p-5 bg-red-600 rounded-2xl shadow-xl">
-                        <p class="text-[10px] text-white font-black mb-4 tracking-wider uppercase text-center">Manual Bypass Required</p>
-                        <div class="flex gap-2">
-                            <button onclick="location.reload()" class="flex-1 py-2 bg-white text-red-600 text-[9px] rounded-xl font-black uppercase">Cancel</button>
-                            <button onclick="confirmIdenfoOverride()" class="flex-1 py-2 bg-red-800 text-white text-[9px] rounded-xl font-black uppercase">Confirm</button>
-                        </div>
+                        <div class="step-text">Initiate Name Screening...</div>
                     </div>
                 </div>
-                <div id="step-upload" class="flex items-center text-slate-400 text-[10px] font-black uppercase tracking-widest"><div class="step-icon w-6 h-6 mr-3 flex items-center justify-center rounded-full border border-slate-200">2</div><div class="step-text">Aggregate Scoring</div></div>
-                <div id="step-2" class="flex items-center text-slate-400 text-[10px] font-black uppercase tracking-widest"><div class="step-icon w-6 h-6 mr-3 flex items-center justify-center rounded-full border border-slate-200">3</div><div class="step-text">Rating Validation</div></div>
-                <div id="step-3" class="flex items-center text-slate-400 text-[10px] font-black uppercase tracking-widest"><div class="step-icon w-6 h-6 mr-3 flex items-center justify-center rounded-full border border-slate-200">4</div><div class="step-text">Syncing Results</div></div>
+                <div id="step-upload" class="flex items-center text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                    <div class="step-icon w-6 h-6 mr-3 flex items-center justify-center rounded-full border border-slate-200">2</div>
+                    <div class="step-text">Final Company Risk Rating..</div>
+                </div>
+                <div id="step-2" class="flex items-center text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                    <div class="step-icon w-6 h-6 mr-3 flex items-center justify-center rounded-full border border-slate-200">3</div>
+                    <div class="step-text">Status</div>
+                </div>
+                <div id="step-3" class="flex items-center text-slate-400 text-[10px] font-black uppercase tracking-widest hidden">
+                    <div class="step-icon w-6 h-6 mr-3 flex items-center justify-center rounded-full border border-slate-200">4</div>
+                    <div class="step-text">---</div>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Embedded Loader Ticker script to keep user attention active -->
+    <script>
+        const logs = [
+            "Establishing Secure CRM Handshake...",
+            "Getting Client Compliance Data...",
+            "Getting Other Stakeholder Data...",
+            "Calculating Risk Scores...",
+            "Finalizing Risk Rating...",
+        ];
+        let index = 0;
+        setInterval(() => {
+            const el = document.getElementById("telemetry-ticker");
+            if (el) {
+                index = (index + 1) % logs.length;
+                el.style.opacity = 0;
+                setTimeout(() => {
+                    el.textContent = logs[index];
+                    el.style.opacity = 1;
+                }, 200);
+            }
+        }, 2200);
+    </script>
     <script src="./js/app.js"></script>
 </body>
 </html>
