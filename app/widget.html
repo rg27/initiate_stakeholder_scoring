@@ -77,24 +77,58 @@
                 <!-- Identity Card -->
                 <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
                     <div class="space-y-4">
-                        <div class="flex justify-between items-start">
-                            <div class="space-y-1 w-full">
+                        <div class="flex justify-between gap-4">
+                            <div class="space-y-3 w-full">
                                 <div class="flex flex-wrap items-center gap-2">
-                                    <h2 id="sh-name" class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-none">---</h2>
+                                    <h2 id="sh-name" class="text-2xl font-extrabold text-slate-900 dark:text-white leading-tight">
+                                        ---
+                                    </h2>
                                     <div id="sh-designations" class="flex flex-wrap gap-1.5"></div>
                                 </div>
-                                <div class="flex items-center gap-2 pt-1">
-                                    <button onclick="copyText('idenfo-id')" class="flex items-center text-[10px] font-black bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded tracking-wider hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors group">
-                                        <span class="text-blue-400 uppercase mr-1">Idenfo ID:</span>
-                                        <span id="idenfo-id" class="text-blue-600 dark:text-blue-300">---</span>
-                                        <svg class="w-2.5 h-2.5 ml-1.5 text-blue-300 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
-                                    </button>
-                                    <p id="sh-email" class="text-[10px] font-medium text-slate-400">---</p>
+
+                                <!-- Meta Info Row -->
+                                <div class="flex flex-wrap items-center gap-3 text-[10px]">
+
+                                    <!-- Idenfo ID Pill -->
+                                    <div class="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full border border-blue-100 dark:border-blue-800">
+                                        <span class="text-blue-400 font-black uppercase tracking-wider">ID:</span>
+                                        <span id="idenfo-id" class="text-blue-700 dark:text-blue-300 font-semibold">---</span>
+
+                                        <button onclick="copyText('idenfo-id')" class="ml-1 hover:scale-110 transition">
+                                            <svg class="w-3 h-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    <!-- Email -->
+                                    <span id="sh-email" class="text-slate-400 font-medium">
+                                        ---
+                                    </span>
+
+                                    <!-- Shareholder Type Badge -->
+                                    <span id="sh-shareholder-type"
+                                        class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 font-semibold uppercase tracking-wide">
+                                        ---
+                                    </span>
+
                                 </div>
                             </div>
-                            <button onclick="copyText('sh-name')" class="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg hover:bg-slate-200 transition-colors ml-4">
-                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
-                            </button>
+
+                            <!-- RIGHT: Copy Name Action -->
+                            <div class="flex-shrink-0">
+                                <button onclick="copyText('sh-name')"
+                                    class="p-3 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition group">
+                                    
+                                    <svg class="w-4 h-4 text-slate-500 group-hover:text-slate-700 dark:group-hover:text-white"
+                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/>
+                                    </svg>
+                                </button>
+                            </div>
+
                         </div>
                         <div class="pt-2 border-t border-slate-100 dark:border-slate-700">
                             <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-2">Company</label>
@@ -170,7 +204,7 @@
                                     <th class="px-4 pb-2">BR Score</th>
                                     <th class="px-4 pb-2">GR Score</th>
                                 </tr>
-                            </thead>
+                            </tbody>
                             <tbody id="sh-table-body"></tbody>
                         </table>
                     </div>

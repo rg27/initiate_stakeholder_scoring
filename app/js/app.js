@@ -1,5 +1,4 @@
 let currentRecordId;
-const IS_DEV = false; // Set to false when your Deluge function is ready
 
 ZOHO.embeddedApp.on("PageLoad", async function (entity) {
     ZOHO.CRM.UI.Resize({ height: "750", width: "1200" });
@@ -27,44 +26,36 @@ async function initPortal() {
 }
 
 async function fetchData() {
-    if (IS_DEV) {
-        console.log("DEV MODE: Loading mock data...");
-        await wait(1500); 
-        mockUI();
-    } else {
-        const funcName = "aml_fetch_compliance_details_v6";
-        const payload = { "aml_id": currentRecordId };
-        const args = { "arguments": JSON.stringify(payload) };
+    const funcName = "aml_fetch_compliance_details_v6";
+    const payload = { "aml_id": currentRecordId };
+    const args = { "arguments": JSON.stringify(payload) };
 
-        console.log("[JS SDK] → Calling function:", funcName);
-        console.log("[JS SDK] → Arguments:", JSON.stringify(payload));
-        console.time("[JS SDK] execute duration");
+    console.log("[JS SDK] → Calling function:", funcName);
+    console.log("[JS SDK] → Arguments:", JSON.stringify(payload));
+    console.time("[JS SDK] execute duration");
 
-        try {
-            const response = await ZOHO.CRM.FUNCTIONS.execute(funcName, args);
-            console.timeEnd("[JS SDK] execute duration");
-            console.log("[JS SDK] ← Raw response object:", response);
+    try {
+        const response = await ZOHO.CRM.FUNCTIONS.execute(funcName, args);
+        console.timeEnd("[JS SDK] execute duration");
+        console.log("[JS SDK] ← Raw response object:", response);
 
-            if (response && response.details && response.details.output) {
-                const resultData = JSON.parse(response.details.output);
-                console.log("[JS SDK] ← Parsed output data:", resultData);
-                renderPortal(resultData);
-            } else {
-                console.warn("[JS SDK] ✗ Unexpected response structure:", response);
-                throw new Error("Invalid response from function");
-            }
-        } catch (error) {
-            console.error("[JS SDK] ✗ Execute failed:", error);
-            throw error;
+        if (response && response.details && response.details.output) {
+            const resultData = JSON.parse(response.details.output);
+            console.log("[JS SDK] ← Parsed output data:", resultData);
+            renderPortal(resultData);
+        } else {
+            console.warn("[JS SDK] ✗ Unexpected response structure:", response);
+            throw new Error("Invalid response from function");
         }
+    } catch (error) {
+        console.error("[JS SDK] ✗ Execute failed:", error);
+        throw error;
     }
 }
 
 function renderPortal(data) {
-    // Store globally for workflow use
     window.lastFetchedData = data;
 
-    // 1. Identity & Details
     document.getElementById("sh-name").textContent = data.cm?.cm_client_name || "N/A";
     document.getElementById("idenfo-id").textContent = data.cm?.cm_idenfo_id || "N/A";
     document.getElementById("sh-email").textContent = data.cm?.cm_client_email || "N/A";
@@ -73,7 +64,6 @@ function renderPortal(data) {
         ? `https://uaedirect.idenfo.com/customer-profiles/customer-information/${data.cm.cm_idenfo_url}` 
         : "#";
 
-    // 2. Timestamp
     const modTimeStr = data.cm?.cm_modified_time;
     if (modTimeStr) {
         const dateObj = new Date(modTimeStr);
@@ -87,7 +77,6 @@ function renderPortal(data) {
     renderDesignations(data.cm?.cm_roles);
     renderFiles(data);
 
-    // 3. Merging & Processing Stakeholder Tables
     const tableBody = document.getElementById("sh-table-body");
     tableBody.innerHTML = ""; 
 
@@ -114,24 +103,26 @@ function renderPortal(data) {
 
             const row = document.createElement("tr");
             row.className = "bg-white dark:bg-slate-800 shadow-sm";
+
             row.innerHTML = `
                 <td class="p-4 font-bold rounded-l-2xl text-slate-800 dark:text-slate-200">${displayName}</td>
-                <td class="p-4 font-mono text-slate-400 text-center">${person.shareholder_type || 'N/A'}</td>
-                <td class="p-4 font-mono text-slate-400 text-center">${person.Idenfo_ID || '---'}</td>
-                <td class="p-4 italic text-slate-600 dark:text-slate-400">${designationStr}</td>
-                <td class="p-4 font-mono text-slate-400 text-center">${person.cr_sf || '0.0'}</td>
-                <td class="p-4 font-mono text-slate-400 text-center">${person.br_ts || '0.0'}</td>
-                <td class="p-4 font-mono text-slate-400 text-center">${person.gr_ts || '0.0'}</td>
+                <td class="p-4 font-mono text-slate-400 text-left">${person.shareholder_type || 'N/A'}</td>
+                <td class="p-4 font-mono text-slate-400 text-left">${person.Idenfo_ID || '---'}</td>
+                <td class="p-4 italic text-slate-600 dark:text-slate-400 text-left">${designationStr}</td>
+                <td class="p-4 font-mono text-slate-400 text-left">${person.cr_sf || '0.0'}</td>
+                <td class="p-4 font-mono text-slate-400 text-left">${person.br_ts || '0.0'}</td>
+                <td class="p-4 font-mono text-slate-400 text-left">${person.gr_ts || '0.0'}</td>
             `;
+
             tableBody.appendChild(row);
         });
     }
 
-    // 4. Scores
     document.getElementById("score-cr").textContent = data.aml?.aml_cr_screening_factor ?? "0.0";
     document.getElementById("score-br").textContent = data.aml?.aml_br_total_score ?? "0.0";
     document.getElementById("score-gr").textContent = data.aml?.aml_gr_total_score ?? "0.0";
     document.getElementById("score-st-total").textContent = data.aml?.aml_stakeholder_total_score ?? "0.0";
+    document.getElementById("sh-shareholder-type").textContent = data.aml?.aml_record_type || "N/A";
     updateFinalRiskUI(data.aml?.aml_final_company_risk_rating || "PENDING");
     document.getElementById("score-st-rating").textContent = data.aml?.aml_stakeholder_risk_rating ?? "N/A";
 }
@@ -139,10 +130,12 @@ function renderPortal(data) {
 function renderFiles(data) {
     const docContainer = document.getElementById("document-links-container");
     docContainer.innerHTML = ""; 
+
     const docs = [
         { label: "Passport", id: data.Passport_File },
         { label: "AML Scan Report", id: data.AML_Scan_File }
     ];
+
     docs.forEach(doc => {
         if (doc.id) {
             const link = document.createElement("a");
@@ -158,8 +151,10 @@ function renderFiles(data) {
 function updateFinalRiskUI(rating) {
     const textEl = document.getElementById("score-final-rating");
     const cardEl = document.getElementById("final-risk-card");
+
     textEl.textContent = rating;
     cardEl.classList.remove("bg-slate-900", "bg-green-600", "bg-red-600");
+
     if (rating.toLowerCase().includes("low")) cardEl.classList.add("bg-green-600");
     else if (rating.toLowerCase().includes("high") || rating.toLowerCase().includes("critical")) cardEl.classList.add("bg-red-600");
     else cardEl.classList.add("bg-slate-900");
@@ -169,9 +164,11 @@ function renderDesignations(designations) {
     const container = document.getElementById("sh-designations");
     container.innerHTML = "";
     if (!designations) return;
+
     const list = Array.isArray(designations) ? designations : designations.split(";");
+
     list.forEach(item => {
-        if(item.trim().length > 0) {
+        if (item.trim().length > 0) {
             const span = document.createElement("span");
             span.className = "px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded font-black uppercase text-[7px] border border-slate-200 dark:border-slate-600 inline-block align-middle";
             span.textContent = item.trim();
@@ -184,48 +181,44 @@ async function startComplianceWorkflow() {
     document.getElementById("loader-overlay").classList.replace("hidden", "flex");
     const currentCmId = window.lastFetchedData?.cm?.cm_id;
 
-    // Step 1: Uses cm_id
     updateLog("1", "processing", "Initiate Stakeholder Screening...");
-    if (!IS_DEV) {
-        try {
-            const payload = { "cm_id": currentCmId };
-            const args = { "arguments": JSON.stringify(payload) };
-            console.log("DEV: AML: Trigger all Scoring Factor v4_btn (Args):", payload);
-            const res = await ZOHO.CRM.FUNCTIONS.execute("dev_aml_trigger_all_scoring_factor_v4_btn", args);
-            console.log("DEV: AML: Trigger all Scoring Factor v4_btn (Result):", res);
-        } catch (e) { console.error("Error Step 1:", e); }
-    } else { await wait(1200); }
+    try {
+        const payload = { "cm_id": currentCmId };
+        const args = { "arguments": JSON.stringify(payload) };
+        console.log("DEV: AML: Trigger all Scoring Factor v4_btn (Args):", payload);
+        //Function Name: DEV: AML: Trigger all Scoring Factor v4_btn 
+        const res = await ZOHO.CRM.FUNCTIONS.execute("dev_aml_trigger_all_scoring_factor_v4_btn", args);
+        console.log("DEV: AML: Trigger all Scoring Factor v4_btn (Result):", res);
+    } catch (e) { console.error("Error Step 1:", e); }
+
     updateLog("1", "success", "Name Screening Complete");
-    
-    // Step 2: Uses aml_id (currentRecordId)
+
     updateLog("upload", "processing", "Final Company Risk Rating...");
-    if (!IS_DEV) {
-        try {
-            const payload = { "aml_id": currentRecordId };
-            const args = { "arguments": JSON.stringify(payload) };
-            console.log("DEV: AML: Final Company Risk Rating (Args):", payload);
-            const res = await ZOHO.CRM.FUNCTIONS.execute("dev_initiate_final_company_risk_rating_detail1", args);
-            console.log("DEV: AML: Final Company Risk Rating (Result):", res);
-        } catch (e) { console.error("Error Step 2:", e); }
-    } else { await wait(1200); }
+    try {
+        const payload = { "aml_id": currentRecordId };
+        const args = { "arguments": JSON.stringify(payload) };
+        console.log("DEV: AML: Final Company Risk Rating (Args):", payload);
+        const res = await ZOHO.CRM.FUNCTIONS.execute("dev_initiate_final_company_risk_rating_detail1", args);
+        console.log("DEV: AML: Final Company Risk Rating (Result):", res);
+    } catch (e) { console.error("Error Step 2:", e); }
+
     updateLog("upload", "success", "Risk Rating Calculated");
-    
-    // Finalize
+
     updateLog("2", "processing", "Finalizing Sync...");
-    await wait(5000); // 5 seconds wait
-    
+    await new Promise(r => setTimeout(r, 5000));
+
     document.getElementById("loader-overlay").classList.replace("flex", "hidden");
-    
-    if (!IS_DEV) { 
-        console.log("Workflow complete. Refreshing data...");
-        await fetchData(); 
-    }
+
+    console.log("Workflow complete. Refreshing data...");
+    await fetchData(); 
 }
 
 function updateLog(id, state, msg) {
     const el = document.getElementById(`step-${id}`);
     if (!el) return;
+
     const icon = el.querySelector(".step-icon");
+
     if (state === "processing") {
         el.classList.add("text-slate-900", "dark:text-white");
         icon.innerHTML = `<div class="w-3 h-3 border-2 border-t-slate-900 animate-spin rounded-full"></div>`;
@@ -234,7 +227,24 @@ function updateLog(id, state, msg) {
         icon.classList.add("bg-green-600", "text-white", "border-green-600");
         icon.innerHTML = "✓";
     }
+
     el.querySelector(".step-text").textContent = msg;
 }
 
-const wait = (ms) => new Promise(r => setTimeout(r, ms));
+/* ✅ Zoho CRM Widget Close → Refresh */
+ZOHO.embeddedApp.on("PageUnload", function () {
+    try {
+        console.log("Widget closing → calling Popup.closeReload");
+
+        ZOHO.CRM.UI.Popup.closeReload()
+            .then(function (data) {
+                console.log("Popup closeReload success:", data);
+            })
+            .catch(function (err) {
+                console.error("Popup closeReload failed:", err);
+            });
+
+    } catch (e) {
+        console.error("PageUnload error:", e);
+    }
+});
