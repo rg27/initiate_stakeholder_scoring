@@ -26,6 +26,7 @@ async function initPortal() {
 }
 
 async function fetchData() {
+    //Function Name: AML: Fetch Compliance Details_v6 
     const funcName = "aml_fetch_compliance_details_v6";
     const payload = { "aml_id": currentRecordId };
     const args = { "arguments": JSON.stringify(payload) };
@@ -87,7 +88,7 @@ function renderPortal(data) {
     if (combinedStakeholders.length === 0) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="4" class="p-4 text-center text-slate-400 italic">
+                <td colspan="8" class="p-4 text-center text-slate-400 italic">
                     No other stakeholders linked to this company.
                 </td>
             </tr>`;
@@ -101,6 +102,9 @@ function renderPortal(data) {
                 ? person.member_roles.join("; ") 
                 : (person.member_roles || "N/A");
 
+            const stakeholderId = person.id || "";
+            const viewLink = stakeholderId ? `https://crm.zoho.com/crm/org682300086/tab/CustomModule49/${stakeholderId}` : "#";
+
             const row = document.createElement("tr");
             row.className = "bg-white dark:bg-slate-800 shadow-sm";
 
@@ -112,6 +116,9 @@ function renderPortal(data) {
                 <td class="p-4 font-mono text-slate-400 text-left">${person.cr_sf || '0.0'}</td>
                 <td class="p-4 font-mono text-slate-400 text-left">${person.br_ts || '0.0'}</td>
                 <td class="p-4 font-mono text-slate-400 text-left">${person.gr_ts || '0.0'}</td>
+                <td class="p-4 rounded-r-2xl text-center">
+                    ${stakeholderId ? `<a href="${viewLink}" target="_blank" class="inline-block px-3 py-1 bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-[10px] font-black uppercase rounded-lg hover:opacity-80 transition-all shadow">View</a>` : `<span class="text-slate-400 italic text-[10px]">N/A</span>`}
+                </td>
             `;
 
             tableBody.appendChild(row);
@@ -131,18 +138,67 @@ function renderFiles(data) {
     const docContainer = document.getElementById("document-links-container");
     docContainer.innerHTML = ""; 
 
-    const docs = [
-        { label: "Passport", id: data.Passport_File },
-        { label: "AML Scan Report", id: data.AML_Scan_File }
-    ];
+    let attachments = data.aml_attachments || [];
+    const clientName = data.cm?.cm_client_name || "";
 
-    docs.forEach(doc => {
-        if (doc.id) {
+    if (attachments.length === 0) {
+        docContainer.innerHTML = `<span class="text-[9px] text-slate-400 italic">No attachments found.</span>`;
+        return;
+    }
+
+    attachments.sort((a, b) => String(b.id || "").localeCompare(String(a.id || "")));
+
+    const uniqueAttachments = [];
+    const seenCategories = new Set();
+
+    attachments.forEach(file => {
+        const fileName = file["File_Name"] || "";
+        let categoryKey = "";
+
+        if (clientName && fileName.toLowerCase().startsWith(clientName.toLowerCase())) {
+            categoryKey = `client_name_scan_${clientName.toLowerCase()}`;
+        }
+        else if (fileName.toLowerCase().includes("kyc form") && clientName && fileName.toLowerCase().includes(clientName.toLowerCase())) {
+            categoryKey = `kyc_form_with_client_${clientName.toLowerCase()}`;
+        } 
+        else if (fileName.toLowerCase().includes("kyb form - nlf")) {
+            categoryKey = "generic_kyb_form_nlf";
+        } else if (fileName.toLowerCase().includes("kyc form")) {
+            categoryKey = "generic_kyc_form";
+        }
+
+        if (categoryKey) {
+            if (!seenCategories.has(categoryKey)) {
+                seenCategories.add(categoryKey);
+                uniqueAttachments.push(file);
+            }
+        } else {
+            uniqueAttachments.push(file);
+        }
+    });
+
+    uniqueAttachments.forEach(file => {
+        const fileId = file["$file_id"];
+        if (fileId) {
+            const workdriveUrl = `https://workdrive.zoho.com/file/${fileId}?authId=%7B%22module%22%3A%223769920000187099442%22%2C%22entity_id%22%3A%22${currentRecordId}%22%7D`;
+            const fileName = file["File_Name"] || "Unnamed Attachment";
+
             const link = document.createElement("a");
-            link.href = `/crm/EntityAttributeView?module=AML_Compliances&fieldDataId=${doc.id}&recordId=${currentRecordId}`;
+            link.href = workdriveUrl;
             link.target = "_blank";
             link.className = "flex items-center p-3 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-900 dark:hover:bg-white hover:text-white dark:hover:text-slate-900 rounded-xl border border-slate-100 dark:border-slate-600 transition-all group";
-            link.innerHTML = `<div class="p-2 bg-red-500/10 rounded-lg mr-3 group-hover:bg-white/20"><svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"></path></svg></div><div class="flex-1"><p class="text-[10px] font-black uppercase tracking-tight">${doc.label}</p><p class="text-[8px] opacity-60">Verified Document</p></div>`;
+            
+            link.innerHTML = `
+                <div class="p-2 bg-red-500/10 rounded-lg mr-3 group-hover:bg-white/20">
+                    <svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"></path>
+                    </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-[10px] font-black uppercase tracking-tight truncate">${fileName}</p>
+                    <p class="text-[8px] opacity-60">WorkDrive Verified Document</p>
+                </div>
+            `;
             docContainer.appendChild(link);
         }
     });
@@ -229,6 +285,30 @@ function updateLog(id, state, msg) {
     }
 
     el.querySelector(".step-text").textContent = msg;
+}
+
+/**
+ * Copies the text content of a specified HTML target element to the clipboard
+ * @param {string} elementId - The DOM element ID to copy text from
+ */
+function copyText(elementId) {
+    const targetElement = document.getElementById(elementId);
+    if (!targetElement) return;
+
+    const textToCopy = targetElement.textContent.trim();
+    
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        // Find the interactive button element nearby to provide micro-interaction feedback
+        const button = event.currentTarget;
+        if (button) {
+            button.classList.add("scale-110", "bg-emerald-500", "text-white");
+            setTimeout(() => {
+                button.classList.remove("scale-110", "bg-emerald-500", "text-white");
+            }, 300);
+        }
+    }).catch(err => {
+        console.error("Could not copy text content safely: ", err);
+    });
 }
 
 /* ✅ Zoho CRM Widget Close → Refresh */
