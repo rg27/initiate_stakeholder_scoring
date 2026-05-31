@@ -237,6 +237,44 @@ async function startComplianceWorkflow() {
     document.getElementById("loader-overlay").classList.replace("hidden", "flex");
     const currentCmId = window.lastFetchedData?.cm?.cm_id;
 
+    // STEP 0: Run New Verification Checker
+    updateLog("3", "processing", "Verifying the Idenfo Record");
+    try {
+        const checkerPayload = { "aml_id": currentRecordId };
+        const checkerArgs = { "arguments": JSON.stringify(checkerPayload) };
+        
+        console.log("[JS SDK] → Calling function: last_review_checker");
+        console.log("[JS SDK] → Arguments Object:", checkerPayload);
+        
+        const checkerRes = await ZOHO.CRM.FUNCTIONS.execute("last_review_checker", checkerArgs);
+        
+        console.log("[JS SDK] ← Raw execution result object:", checkerRes);
+
+        if (checkerRes && checkerRes.details && checkerRes.details.output) {
+            const checkerData = JSON.parse(checkerRes.details.output);
+            const idenfoRecord = checkerData?.idenfo;
+            
+            if (idenfoRecord) {
+                const riskRating = String(idenfoRecord.risk_rating).toLowerCase();
+                const statusValue = String(idenfoRecord.status).toLowerCase();
+                
+                if (riskRating === "high" && statusValue === "pending") {
+                    document.getElementById("loader-overlay").classList.replace("flex", "hidden");
+                    
+                    showCustomModal(
+                        "Idenfo Record Verification Required",
+                        "The Idenfo record of this client is still a High Risk and pending for approval. Please approve first from Idenfo before you trigger the Run Compliance Engine button."
+                    );
+                    return; 
+                }
+            }
+        }
+    } catch (e) { 
+        console.error("Error in Last Review Verification Step:", e); 
+    }
+    updateLog("3", "success", "Review Verification Checked");
+
+    // STEP 1: Existing Name Screening Process
     updateLog("1", "processing", "Initiate Stakeholder Screening...");
     try {
         const payload = { "cm_id": currentCmId };
@@ -249,6 +287,7 @@ async function startComplianceWorkflow() {
 
     updateLog("1", "success", "Name Screening Complete");
 
+    // STEP 2: Existing Final Company Risk Rating Process
     updateLog("upload", "processing", "Final Company Risk Rating...");
     try {
         const payload = { "aml_id": currentRecordId };
@@ -260,6 +299,7 @@ async function startComplianceWorkflow() {
 
     updateLog("upload", "success", "Risk Rating Calculated");
 
+    // STEP 3: Existing Finalizing Sync Step
     updateLog("2", "processing", "Finalizing Sync...");
     await new Promise(r => setTimeout(r, 5000));
 
@@ -267,6 +307,41 @@ async function startComplianceWorkflow() {
 
     console.log("Workflow complete. Refreshing data...");
     await fetchData(); 
+}
+
+function showCustomModal(title, message) {
+    const backdrop = document.createElement("div");
+    backdrop.className = "fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[2000] flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease-out]";
+    
+    const container = document.createElement("div");
+    container.className = "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 w-full max-w-md rounded-2xl p-6 shadow-2xl transform scale-95 animate-[scaleUp_0.2s_ease-out_forwards]";
+    
+    container.innerHTML = `
+        <div class="flex items-start gap-4 mb-4">
+            <div class="p-2.5 bg-red-500/10 dark:bg-red-500/20 text-red-600 rounded-xl flex-shrink-0">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider mb-1">${title}</h3>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">${message}</p>
+            </div>
+        </div>
+        <div class="flex justify-end pt-2">
+            <button id="close-modal-btn" class="px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-[10px] font-black uppercase shadow-lg hover:opacity-80 active:scale-95 transition-all">
+                Okay
+            </button>
+        </div>
+    `;
+
+    backdrop.appendChild(container);
+    document.body.appendChild(backdrop);
+
+    container.querySelector("#close-modal-btn").addEventListener("click", () => {
+        backdrop.classList.replace("animate-[fadeIn_0.2s_ease-out]", "animate-[fadeOut_0.15s_ease-in]");
+        setTimeout(() => backdrop.remove(), 150);
+    });
 }
 
 function updateLog(id, state, msg) {
@@ -290,16 +365,16 @@ function updateLog(id, state, msg) {
 /**
  * Copies the text content of a specified HTML target element to the clipboard
  * @param {string} elementId - The DOM element ID to copy text from
+ * @param {Event} event - Passed DOM Event context to handle click targets safely
  */
-function copyText(elementId) {
+function copyText(elementId, event) {
     const targetElement = document.getElementById(elementId);
     if (!targetElement) return;
 
     const textToCopy = targetElement.textContent.trim();
     
     navigator.clipboard.writeText(textToCopy).then(() => {
-        // Find the interactive button element nearby to provide micro-interaction feedback
-        const button = event.currentTarget;
+        const button = event ? event.currentTarget : null;
         if (button) {
             button.classList.add("scale-110", "bg-emerald-500", "text-white");
             setTimeout(() => {
