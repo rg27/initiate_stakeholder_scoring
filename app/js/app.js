@@ -1,7 +1,7 @@
 let currentRecordId;
 
 ZOHO.embeddedApp.on("PageLoad", async function (entity) {
-    ZOHO.CRM.UI.Resize({ height: "750", width: "1200" });
+    ZOHO.CRM.UI.Resize({ height: "750", width: "1300" });
     currentRecordId = entity.EntityId[0];
     await initPortal();
 });
