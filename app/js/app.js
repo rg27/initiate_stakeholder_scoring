@@ -142,7 +142,7 @@ function renderFiles(data) {
             link.href = `https://workdrive.zoho.com/file/${file["$file_id"]}?authId=%7B%22module%22%3A%223769920000187099442%22%2C%22entity_id%22%3A%22${currentRecordId}%22%7D`;
             link.target = "_blank";
             link.className = "flex items-center p-3 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-900 rounded-xl border transition-all group";
-            link.innerHTML = `<div class="p-2 bg-red-500/10 rounded-lg mr-3"><svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"></path></svg></div><p class="text-[10px] font-black uppercase truncate">${file["File_Name"] || "Attachment"}</p>`;
+            link.innerHTML = `<div class="p-2 bg-red-500/10 rounded-lg mr-3"><svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"></path></svg></div><p class="text-[10px] font-black uppercase truncate group-hover:text-white">${file["File_Name"] || "Attachment"}</p>`;
             docContainer.appendChild(link);
         }
     });
@@ -157,7 +157,7 @@ async function startComplianceWorkflow() {
         const checkerRes = await ZOHO.CRM.FUNCTIONS.execute("last_review_checker", { "arguments": JSON.stringify({ "aml_id": currentRecordId }) });
         const data = JSON.parse(checkerRes.details.output);
         if (data?.idenfo?.risk_rating === "high" && data?.idenfo?.status === "pending") {
-            showCustomAlert("Action Required", "The client’s Idenfo risk rating is currently marked as High and remains pending for approval. Kindly review and approve the Idenfo record at your earliest convenience.");
+            showCustomAlert("Action Required", "The client's Idenfo risk rating is currently marked as High and remains pending for approval. Kindly review and approve the Idenfo record at your earliest convenience.");
             return;
         }
         await ZOHO.CRM.FUNCTIONS.execute("aml_set_cr_screening_factor_v2", { "arguments": JSON.stringify({ "aml_id": currentRecordId }) });
