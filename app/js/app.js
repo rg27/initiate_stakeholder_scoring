@@ -31,7 +31,9 @@ async function fetchData() {
     const args = { "arguments": JSON.stringify(payload) };
 
     try {
+        console.log(`[EXECUTE] ${funcName} - Parameters:`, JSON.stringify(args, null, 2));
         const response = await ZOHO.CRM.FUNCTIONS.execute(funcName, args);
+        console.log(`[EXECUTE] ${funcName} - Result:`, JSON.stringify(response, null, 2));
         if (response && response.details && response.details.output) {
             const resultData = JSON.parse(response.details.output);
             renderPortal(resultData);
@@ -154,31 +156,67 @@ async function startComplianceWorkflow() {
     const currentCmId = window.lastFetchedData?.cm?.cm_id;
     updateLog("3", "processing", "Verifying the Idenfo Record");
     try {
-        const checkerRes = await ZOHO.CRM.FUNCTIONS.execute("last_review_checker", { "arguments": JSON.stringify({ "aml_id": currentRecordId }) });
+        const lastReviewCheckerArgs = { "arguments": JSON.stringify({ "aml_id": currentRecordId }) };
+        console.log("[EXECUTE] last_review_checker - Parameters:", JSON.stringify(lastReviewCheckerArgs, null, 2));
+        const checkerRes = await ZOHO.CRM.FUNCTIONS.execute("last_review_checker", lastReviewCheckerArgs);
+        console.log("[EXECUTE] last_review_checker - Result:", JSON.stringify(checkerRes, null, 2));
         const data = JSON.parse(checkerRes.details.output);
         if (data?.idenfo?.risk_rating === "high" && data?.idenfo?.status === "pending") {
             showCustomAlert("Action Required", "The client's Idenfo risk rating is currently marked as High and remains pending for approval. Kindly review and approve the Idenfo record at your earliest convenience.");
             return;
         }
-        await ZOHO.CRM.FUNCTIONS.execute("aml_set_cr_screening_factor_v2", { "arguments": JSON.stringify({ "aml_id": currentRecordId }) });
+
+        const officerDecision = data?.idenfo?.aml_officer_decision;
+        if (officerDecision && officerDecision !== "None") {
+            document.getElementById("loader-overlay").classList.replace("flex", "hidden");
+            showOfficerDecisionConfirm(
+                officerDecision,
+                async () => {
+                    document.getElementById("loader-overlay").classList.replace("hidden", "flex");
+                    await runRemainingWorkflow(currentCmId);
+                },
+                () => {
+                    closeAndReload();
+                }
+            );
+            return;
+        }
+
+        const setCrScreeningArgs = { "arguments": JSON.stringify({ "aml_id": currentRecordId }) };
+        console.log("[EXECUTE] aml_set_cr_screening_factor_v2 - Parameters:", JSON.stringify(setCrScreeningArgs, null, 2));
+        const setCrScreeningRes = await ZOHO.CRM.FUNCTIONS.execute("aml_set_cr_screening_factor_v2", setCrScreeningArgs);
+        console.log("[EXECUTE] aml_set_cr_screening_factor_v2 - Result:", JSON.stringify(setCrScreeningRes, null, 2));
         updateLog("3", "success", "Review Verification Checked");
     } catch (e) { showBackendErrorModal(); return; }
 
+    await runRemainingWorkflow(currentCmId);
+}
+
+async function runRemainingWorkflow(currentCmId) {
     updateLog("download", "processing", "Downloading AML Scan Report...");
     try {
-        await ZOHO.CRM.FUNCTIONS.execute("aml_download_newly_approved_aml_scan_report_v2", { "arguments": JSON.stringify({ "aml_id": currentRecordId }) });
+        const downloadReportArgs = { "arguments": JSON.stringify({ "aml_id": currentRecordId }) };
+        console.log("[EXECUTE] aml_download_newly_approved_aml_scan_report_v2 - Parameters:", JSON.stringify(downloadReportArgs, null, 2));
+        const downloadReportRes = await ZOHO.CRM.FUNCTIONS.execute("aml_download_newly_approved_aml_scan_report_v2", downloadReportArgs);
+        console.log("[EXECUTE] aml_download_newly_approved_aml_scan_report_v2 - Result:", JSON.stringify(downloadReportRes, null, 2));
         updateLog("download", "success", "Report Downloaded");
     } catch (e) { showBackendErrorModal(); return; }
 
     updateLog("1", "processing", "Initiate Stakeholder Screening...");
     try {
-        await ZOHO.CRM.FUNCTIONS.execute("dev_aml_trigger_all_scoring_factor_v4_btn", { "arguments": JSON.stringify({ "cm_id": currentCmId }) });
+        const triggerScoringArgs = { "arguments": JSON.stringify({ "cm_id": currentCmId }) };
+        console.log("[EXECUTE] dev_aml_trigger_all_scoring_factor_v4_btn - Parameters:", JSON.stringify(triggerScoringArgs, null, 2));
+        const triggerScoringRes = await ZOHO.CRM.FUNCTIONS.execute("dev_aml_trigger_all_scoring_factor_v4_btn", triggerScoringArgs);
+        console.log("[EXECUTE] dev_aml_trigger_all_scoring_factor_v4_btn - Result:", JSON.stringify(triggerScoringRes, null, 2));
         updateLog("1", "success", "Name Screening Complete");
     } catch (e) { showBackendErrorModal(); return; }
 
     updateLog("upload", "processing", "Final Company Risk Rating...");
     try {
-        await ZOHO.CRM.FUNCTIONS.execute("dev_initiate_final_company_risk_rating_detail1", { "arguments": JSON.stringify({ "aml_id": currentRecordId }) });
+        const finalRiskRatingArgs = { "arguments": JSON.stringify({ "aml_id": currentRecordId }) };
+        console.log("[EXECUTE] dev_initiate_final_company_risk_rating_detail1 - Parameters:", JSON.stringify(finalRiskRatingArgs, null, 2));
+        const finalRiskRatingRes = await ZOHO.CRM.FUNCTIONS.execute("dev_initiate_final_company_risk_rating_detail1", finalRiskRatingArgs);
+        console.log("[EXECUTE] dev_initiate_final_company_risk_rating_detail1 - Result:", JSON.stringify(finalRiskRatingRes, null, 2));
         updateLog("upload", "success", "Risk Rating Calculated");
     } catch (e) { showBackendErrorModal(); return; }
 
@@ -251,6 +289,31 @@ function showCustomAlert(title, message) {
         </div>
     `;
     document.body.appendChild(overlay);
+}
+
+function showOfficerDecisionConfirm(decision, onYes, onNo) {
+    const overlay = document.createElement("div");
+    overlay.className = "fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[2000] flex items-center justify-center p-6";
+    overlay.innerHTML = `
+        <div class="bg-white dark:bg-slate-800 rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center border border-slate-700">
+            <h3 class="text-lg font-black text-slate-900 dark:text-white mb-2">Confirm Compliance Process</h3>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">The AML Officer Decision is currently marked as <span class="font-black uppercase">${decision}</span>, do you still want to proceed with the Compliance Process for this stakeholder?</p>
+            <div class="flex gap-3">
+                <button id="officer-decision-no" class="flex-1 py-3 bg-slate-200 dark:bg-slate-600 text-slate-900 dark:text-white rounded-xl font-black text-xs uppercase">No</button>
+                <button id="officer-decision-yes" class="flex-1 py-3 bg-slate-900 text-white rounded-xl font-black text-xs uppercase">Yes</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    document.getElementById("officer-decision-yes").onclick = () => {
+        overlay.remove();
+        onYes();
+    };
+    document.getElementById("officer-decision-no").onclick = () => {
+        overlay.remove();
+        onNo();
+    };
 }
 
 function copyText(id) {
