@@ -154,7 +154,6 @@ async function startComplianceWorkflow() {
     resetLog();
     document.getElementById("loader-overlay").classList.replace("hidden", "flex");
     const currentCmId = window.lastFetchedData?.cm?.cm_id;
-    updateLog("3", "processing", "Verifying the Idenfo Record");
     try {
         const lastReviewCheckerArgs = { "arguments": JSON.stringify({ "aml_id": currentRecordId }) };
         console.log("[EXECUTE] last_review_checker - Parameters:", JSON.stringify(lastReviewCheckerArgs, null, 2));
@@ -181,7 +180,14 @@ async function startComplianceWorkflow() {
             );
             return;
         }
+    } catch (e) { showBackendErrorModal(); return; }
 
+    await runRemainingWorkflow(currentCmId);
+}
+
+async function runRemainingWorkflow(currentCmId) {
+    updateLog("3", "processing", "Verifying the Idenfo Record");
+    try {
         const setCrScreeningArgs = { "arguments": JSON.stringify({ "aml_id": currentRecordId }) };
         console.log("[EXECUTE] aml_set_cr_screening_factor_v2 - Parameters:", JSON.stringify(setCrScreeningArgs, null, 2));
         const setCrScreeningRes = await ZOHO.CRM.FUNCTIONS.execute("aml_set_cr_screening_factor_v2", setCrScreeningArgs);
@@ -189,10 +195,6 @@ async function startComplianceWorkflow() {
         updateLog("3", "success", "Review Verification Checked");
     } catch (e) { showBackendErrorModal(); return; }
 
-    await runRemainingWorkflow(currentCmId);
-}
-
-async function runRemainingWorkflow(currentCmId) {
     updateLog("download", "processing", "Downloading AML Scan Report...");
     try {
         const downloadReportArgs = { "arguments": JSON.stringify({ "aml_id": currentRecordId }) };
